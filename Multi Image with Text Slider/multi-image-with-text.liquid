@@ -1,0 +1,287 @@
+{%- style -%}
+
+    .slide-container{
+        position: relative;
+        margin-top: {{ section.settings.top-margin }}px !important;
+        margin-bottom: {{ section.settings.bottom-margin }}px !important;
+        display: flex;
+        justify-content: space-between;
+        flex-direction: column;
+    }
+
+    .slide-container .slide{
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        display: flex;
+        width: 100%;
+        height: 100%;
+    }
+
+    .slide-container .left{
+        width: 50%;
+    }
+
+    .slide-container .left img{
+        filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.1));
+        display: block;
+        transition: transform 0.5s ease, opacity 0.5s ease;
+        backface-visibility: hidden;
+        position: relative;
+        border-radius: 10px;
+    }
+
+    .slide-container .right{
+        width: 50%;
+        background: #fff;
+        text-align: left;
+    }
+
+    .slide-container .right h2 {
+        margin-top: 0px;
+    }
+
+    .slide-container .tagline{
+        color: #aac2b1;
+        text-transform: uppercase;
+    }
+
+    .slide-container .navigation{
+        display: flex;
+        width: 100%;
+        column-gap: 10px;
+    }
+
+    .slide-container span.previous, span.next {
+    border: 1px solid rgba(0, 0, 0, .1);
+    line-height: 0px;
+    font-size: 30px;
+    display: flex;
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 5px;
+    transition: all ease-in-out .3s;
+}
+
+.slide-container span.previous:hover, span.next:hover{
+    border: 1px solid #aac2b1;
+    cursor: pointer;    
+}
+
+
+    @media screen and (min-width: 750px){
+        .slide-container {
+            max-width: 1140px;
+            margin: 0 auto;
+        }
+    }
+
+    /* Animation für das Bild */
+    @keyframes slideOutRight {
+        0% {
+            transform:   translateX(50px);
+            opacity: 0;
+        }
+        100% {
+            transform:  translateX(0px);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideInLeft {
+        0% {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+        100% {
+            transform:  translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @media screen and (max-width: 749px){
+        .slide-container .slide {
+            flex-direction: column;
+            row-gap: 40px;
+        }
+
+        .slide-container .slide .left img{
+            width: 75%;
+            margin: 0 auto;
+            height: auto;
+        }
+
+        .slide-container .slide .left, .slide-container .slide .right{
+            width: 100%;
+        }
+
+        .slide-container .slide .right{
+            text-align: center;
+        }
+
+        .slide-container .navigation {
+            justify-content: center;
+        }
+    }
+
+    
+{%- endstyle -%}
+
+<div class="isolate page-width">
+    <div class="slide-container content-container">
+        {% for block in section.blocks %}
+            <div class="slide" id="slide-container-{{ forloop.index }}">
+                <div class="left" style="transform: rotate({{ block.settings.rotation }}deg);" style="z-index: 0;">
+                    {{ block.settings.image | image_url: width: 400 | image_tag }}
+                </div>
+                <div class="right" style="position: relative; opacity: 0; z-index: 0;">
+                    <span class="tagline">{{ block.settings.tagline }}</span>
+                    <h2 class="title inline-richtext h1">{{ block.settings.headline-text }}</h2>
+                    <p>{{ block.settings.text }}</p>
+                    <div class="navigation"><span class="previous">&#8249;</span><span class="next">&#8250;</span></div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const slides = document.querySelectorAll(".slide");
+    
+    let currentIndex = 0; // Start bei der ersten Folie
+    animationdirection = "";
+    // Funktion, um den aktuellen Slide anzuzeigen
+    const showSlide = (index) => {
+        slides.forEach((slide, i) => {
+            if (i === index) {
+                const slide_img = slide.querySelector(".left");
+                const slide_txt = slide.querySelector(".right");
+                slide_img.style.zIndex = "1";
+                slide_txt.style.opacity = "1";
+                slide_txt.style.zIndex = "1";
+                slide.style.position = "relative";
+                console.log("START"); 
+                console.log(animationdirection);
+                slide_img.style.animation = animationdirection;
+                
+            } else {
+                const slide_img = slide.querySelector(".left");
+                const slide_txt = slide.querySelector(".right");
+                slide_img.style.zIndex = "0";
+                slide_txt.style.opacity = "0";
+                slide_txt.style.zIndex = "0";
+                slide.style.position = "absolute";
+                slide_img.style.animation = "none";
+            }
+        });
+    };
+
+    // Event-Listener für die Navigation
+    slides.forEach((slide, index) => {
+        const nextButton = slide.querySelector(".next");
+        const prevButton = slide.querySelector(".previous");
+
+        // Nächste Folie
+        if (nextButton) {
+            nextButton.addEventListener("click", () => {
+                currentIndex = (currentIndex + 1) % slides.length; // Zurück zum ersten Slide, wenn am Ende
+                animationdirection = "slideInLeft 0.2s ease";
+                showSlide(currentIndex);
+                
+            });
+        }
+
+        // Vorherige Folie
+        if (prevButton) {
+            prevButton.addEventListener("click", () => {
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length; // Zurück zum letzten Slide, wenn am Anfang
+                animationdirection = "slideOutRight 0.2s ease";
+                showSlide(currentIndex);
+                
+            });
+        }
+    });
+
+    // Initialisierung: Zeige die erste Folie
+    showSlide(currentIndex);
+});
+</script>
+
+{%  schema  %} 
+    {
+    "name": "Multi Image with Text",
+    "tag": "section",
+    "class": "section",
+    "settings": [
+        {
+            "type": "text",
+            "label": "Headline",
+            "id": "headline"
+        },
+        {
+            "type": "range",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 50,
+            "label": "oberer Abstand",
+            "id": "top-margin"
+        },
+        {
+            "type": "range",
+            "min": 0,
+            "max": 100,
+            "step": 5,
+            "default": 50,
+            "label": "unterer Abstand",
+            "id": "bottom-margin"
+        }
+    ],
+    "blocks": [
+        {
+            "type": "slide",
+            "name": "Slide",
+            "settings": [
+                {
+                    "type": "image_picker",
+                    "label": "Image",
+                    "id": "image"
+                },
+                {
+                    "type": "range",
+                    "min": -10,
+                    "max": 10,
+                    "step": 1,
+                    "default": 0,
+                    "label": "Rotation",
+                    "id": "rotation"
+                },
+                {
+                    "type": "text",
+                    "label": "Headline Text",
+                    "id": "headline-text"
+                },
+                {
+                    "type": "text",
+                    "label": "Tagline",
+                    "id": "tagline"
+                },
+                {
+                    "type": "richtext",
+                    "label": "Text",
+                    "id": "text"
+                }
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "Multi Image with Text"
+        }
+    ]
+    }
+{% endschema %}
